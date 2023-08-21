@@ -23,4 +23,5 @@ app.post('/users', async (request, reply) => {
       password_hash: passwordHash,
     },
   })
+  return reply.status(201).send()
 })
