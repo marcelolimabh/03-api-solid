@@ -1,25 +1,26 @@
 import fastify from 'fastify'
 import crypto from 'node:crypto'
+import { z } from 'zod'
+import { prisma } from './lib/prisma'
 
-import { PrismaClient } from '@prisma/client'
 export const app = fastify()
 
-const prisma = new PrismaClient()
-const hash = crypto.createHash('sha256')
-const password = hash.update('1234').digest('hex')
-console.log(password)
-/*
-const us = prisma.user
-  .create({
+app.post('/users', async (request, reply) => {
+  const registerBodySchema = z.object({
+    name: z.string(),
+    email: z.string().email(),
+    password: z.string().min(6),
+  })
+  const hash = crypto.createHash('sha512')
+
+  const { name, email, password } = registerBodySchema.parse(request.body)
+  const passwordHash = hash.update(password).digest('hex')
+
+  await prisma.user.create({
     data: {
-      name: 'Marcelo Lima Bicalho',
-      email: 'marcelo@gmail.com',
-      password_hash: password,
+      name,
+      email,
+      password_hash: passwordHash,
     },
   })
-  .then(() => {
-    console.log(us)
-  })
-
-console.log(us)
-*/
+})
